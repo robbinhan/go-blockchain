@@ -1,0 +1,13 @@
+package: .
+import:
+- package: github.com/tendermint/tendermint
+  version: ^0.20.0
+- package: github.com/tendermint/abci
+  version: ^0.11.0
+- package: github.com/dgraph-io/badger
+  version: ^1.5.1
+- package: github.com/dgryski/go-farm
+- package: github.com/tendermint/tmlibs
+  version: ^0.9.0-rc0
+- package: github.com/tendermint/go-amino
+  version: 0.9.9

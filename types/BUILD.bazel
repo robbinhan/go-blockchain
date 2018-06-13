@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["block.go"],
+    importpath = "github.com/robbinhan/go-blockchain/types",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//bazel-go-blockchain/external/go_sdk/src/encoding/json:go_default_library",
+        "//vendor/github.com/tendermint/go-amino:go_default_library",
+        "//vendor/github.com/tendermint/tmlibs/common:go_default_library",
+        "//vendor/github.com/tendermint/tmlibs/merkle:go_default_library",
+        "//vendor/golang.org/x/crypto/ripemd160:go_default_library",
+    ],
+)

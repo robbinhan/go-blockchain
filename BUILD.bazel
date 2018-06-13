@@ -1,0 +1,30 @@
+load("@bazel_gazelle//:def.bzl", "gazelle")
+
+gazelle(
+    name = "gazelle",
+    prefix = "github.com/robbinhan/go-blockchain",
+)
+
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "github.com/robbinhan/go-blockchain",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//abci:go_default_library",
+        "//database:go_default_library",
+        "//vendor/github.com/dgraph-io/badger:go_default_library",
+        "//vendor/github.com/tendermint/abci/server:go_default_library",
+        "//vendor/github.com/tendermint/abci/types:go_default_library",
+        "//vendor/github.com/tendermint/tmlibs/common:go_default_library",
+        "//vendor/github.com/tendermint/tmlibs/log:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "go-blockchain",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
