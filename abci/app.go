@@ -143,6 +143,8 @@ func (app *Application) Commit() abcitypes.ResponseCommit {
 	//binary.PutVarint(appHash, app.state.Size)
 	//app.state.AppHash = appHash
 	//app.state.Height += 1
+	rootHash := types.RootHash(app.block)
+	app.block.Header.MerkleRootHash = rootHash
 	app.state.InsertBlock(app.block)
 	return abcitypes.ResponseCommit{Data: appHash}
 }
