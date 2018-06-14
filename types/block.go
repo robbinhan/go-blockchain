@@ -29,6 +29,7 @@ type Header struct {
 	AppHash        []byte `protobuf:"bytes,8,opt,name=app_hash,json=appHash,proto3" json:"app_hash,omitempty"`
 	// consensus
 	//Proposer Validator `protobuf:"bytes,9,opt,name=proposer" json:"proposer"`
+	MerkleRootHash []byte
 }
 
 // Hash returns the hash of the header.
@@ -104,6 +105,7 @@ func aminoHasher(item interface{}) merkle.Hasher {
 }
 
 type Transaction struct {
+	txID []byte
 }
 
 type Log struct {
