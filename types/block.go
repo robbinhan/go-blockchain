@@ -2,12 +2,12 @@ package types
 
 import (
 	//tendertypes "github.com/tendermint/tendermint/types"
-	"github.com/tendermint/tmlibs/merkle"
-	"golang.org/x/crypto/ripemd160"
-	cmn "github.com/tendermint/tmlibs/common"
-	"github.com/tendermint/go-amino"
 	"crypto/sha256"
 	"github.com/robbinhan/go-blockchain/bazel-go-blockchain/external/go_sdk/src/encoding/json"
+	"github.com/tendermint/go-amino"
+	cmn "github.com/tendermint/tmlibs/common"
+	"github.com/tendermint/tmlibs/merkle"
+	"golang.org/x/crypto/ripemd160"
 )
 
 type Block struct {
@@ -106,6 +106,16 @@ func aminoHasher(item interface{}) merkle.Hasher {
 
 type Transaction struct {
 	txID []byte
+	data []byte
+}
+
+func NewTransaction(data []byte, block Block) *Transaction {
+	tx := &Transaction{data: data}
+	shaHasher := sha256.New()
+	shaHasher.Write(tx)
+	shaHasher.Write(block.Hash())
+	tx.txID = shaHasher.Sum(nil)
+	return tx
 }
 
 type Log struct {

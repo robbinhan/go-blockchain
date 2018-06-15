@@ -7,6 +7,7 @@ import (
 	"github.com/robbinhan/go-blockchain/database"
 	"github.com/robbinhan/go-blockchain/types"
 	abcitypes "github.com/tendermint/abci/types"
+	cmn "github.com/tendermint/tmlibs/common"
 	"github.com/tendermint/tmlibs/log"
 )
 
@@ -30,14 +31,14 @@ func NewApplication(db *badger.DB) *Application {
 Info Connection  start
 */
 func (app *Application) Info(req abcitypes.RequestInfo) (resInfo abcitypes.ResponseInfo) {
-	app.logger.Info("Info", "version", req.GetVersion(), "string", req.String())
+	app.logger.Debug("Info", "version", req.GetVersion(), "string", req.String())
 	// 检查db，查询当前height，返回不同的数据
 	currentBlock, err := app.blockchain.LatestBlock()
 	if err != nil {
 		panic(err)
 	}
 	height := currentBlock.Height
-	hash := currentBlock.Hash()
+	hash := currentBlock.AppHash
 
 	app.logger.Debug("Info", "current_height", height) // nolint: errcheck
 
@@ -57,12 +58,12 @@ func (app *Application) Info(req abcitypes.RequestInfo) (resInfo abcitypes.Respo
 }
 
 func (app *Application) SetOptionn(req abcitypes.RequestSetOption) (resOption abcitypes.Response_SetOption) {
-	app.logger.Info("SetOption", "key", req.Key, "value", req.Value)
+	app.logger.Debug("SetOption", "key", req.Key, "value", req.Value)
 	return abcitypes.Response_SetOption{}
 }
 
 func (app *Application) Query(reqQuery abcitypes.RequestQuery) (resQuery abcitypes.ResponseQuery) {
-	app.logger.Info("Query")
+	app.logger.Debug("Query")
 	return abcitypes.ResponseQuery{Log: reqQuery.Path}
 }
 
@@ -74,15 +75,15 @@ Info Connection  end
 Mempool Connection
 */
 func (app *Application) CheckTx(tx []byte) abcitypes.ResponseCheckTx {
-	app.logger.Info("CheckTx")
-	return abcitypes.ResponseCheckTx{Code: 1}
+	app.logger.Debug("CheckTx")
+	return abcitypes.ResponseCheckTx{Code: 0, Data: tx, Fee: cmn.KI64Pair{Key: []byte("key"), Value: 1}}
 }
 
 /**
 Consensus Connection start
 */
 func (app *Application) InitChain(req abcitypes.RequestInitChain) (resInit abcitypes.ResponseInitChain) {
-	app.logger.Info("InitChain", "validator", req.GetValidators(), "state", req.GetAppStateBytes())
+	app.logger.Debug("InitChain", "validator", req.GetValidators(), "state", req.GetAppStateBytes())
 
 	app.validators = req.GetValidators()
 	resp := abcitypes.ResponseInitChain{
@@ -93,7 +94,7 @@ func (app *Application) InitChain(req abcitypes.RequestInitChain) (resInit abcit
 
 // Track the block hash and header information
 func (app *Application) BeginBlock(params abcitypes.RequestBeginBlock) abcitypes.ResponseBeginBlock {
-	app.logger.Info("BeginBlock", "hash", params.GetHash(), "header", params.Header, "Validator", params.GetValidators())
+	app.logger.Debug("BeginBlock", "hash", params.GetHash(), "header", params.Header, "Validator", params.GetValidators())
 	app.block.Header.ChainID = params.GetHeader().ChainID
 	app.block.Header.Time = params.GetHeader().Time
 	app.block.Header.NumTxs = params.GetHeader().NumTxs
@@ -106,21 +107,15 @@ func (app *Application) BeginBlock(params abcitypes.RequestBeginBlock) abcitypes
 
 // tx is either "key=value" or just arbitrary bytes
 func (app *Application) DeliverTx(tx []byte) abcitypes.ResponseDeliverTx {
-	app.logger.Info("DeliverTx")
+	app.logger.Debug("DeliverTx")
+	app.logger.Debug("print tx", "tx", tx)
 
-	//parts := strings.Split(string(tx), "=")
-	//if len(parts) == 2 {
-	//	app.state.Set([]byte(parts[0]), []byte(parts[1]))
-	//} else {
-	//	app.state.Set(tx, tx)
-	//}
-	//return abcitypes.OK
-
-	return abcitypes.ResponseDeliverTx{Code: 1}
+	app.block.Txs = append(app.block.Txs, types.NewTransaction(tx))
+	return abcitypes.ResponseDeliverTx{Code: 0}
 }
 
 func (app *Application) EndBlock(req abcitypes.RequestEndBlock) abcitypes.ResponseEndBlock {
-	app.logger.Info("EndBlock", "height", req.Height)
+	app.logger.Debug("EndBlock", "height", req.Height)
 	app.block.Height = req.Height
 
 	resp := abcitypes.ResponseEndBlock{}
@@ -128,7 +123,7 @@ func (app *Application) EndBlock(req abcitypes.RequestEndBlock) abcitypes.Respon
 }
 
 func (app *Application) Commit() abcitypes.ResponseCommit {
-	app.logger.Info("Commit")
+	app.logger.Debug("Commit")
 	appHash := make([]byte, 8)
 	rootHash := types.RootHash(app.block)
 	app.block.Header.MerkleRootHash = rootHash

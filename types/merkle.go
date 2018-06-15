@@ -84,6 +84,10 @@ func RootHash(block Block) []byte {
 		l := NewNode(tx.txID)
 		leafs = append(leafs, l)
 	}
+
+	if len(leafs) <= 0 {
+		return hash(NewNode(nil))
+	}
 	return rootHash(leafs)
 }
 
