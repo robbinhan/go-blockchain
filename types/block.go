@@ -13,7 +13,7 @@ import (
 type Block struct {
 	Header
 	Parent *Block
-	Txs    []Transaction
+	Txs    []*Transaction
 	Logs   []Log
 }
 
@@ -112,7 +112,7 @@ type Transaction struct {
 func NewTransaction(data []byte, block Block) *Transaction {
 	tx := &Transaction{data: data}
 	shaHasher := sha256.New()
-	shaHasher.Write(tx)
+	shaHasher.Write(data)
 	shaHasher.Write(block.Hash())
 	tx.txID = shaHasher.Sum(nil)
 	return tx

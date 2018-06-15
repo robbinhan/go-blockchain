@@ -110,7 +110,7 @@ func (app *Application) DeliverTx(tx []byte) abcitypes.ResponseDeliverTx {
 	app.logger.Debug("DeliverTx")
 	app.logger.Debug("print tx", "tx", tx)
 
-	app.block.Txs = append(app.block.Txs, types.NewTransaction(tx))
+	app.block.Txs = append(app.block.Txs, types.NewTransaction(tx, app.block))
 	return abcitypes.ResponseDeliverTx{Code: 0}
 }
 
@@ -128,6 +128,7 @@ func (app *Application) Commit() abcitypes.ResponseCommit {
 	rootHash := types.RootHash(app.block)
 	app.block.Header.MerkleRootHash = rootHash
 	app.block.Header.LastBlockHash = app.blockchain.CurrentBlock.Hash()
+	app.block.Parent = app.blockchain.CurrentBlock
 	app.blockchain.AddBlock(app.block)
 	return abcitypes.ResponseCommit{Data: appHash}
 }
